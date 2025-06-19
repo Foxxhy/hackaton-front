@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { 
-  Upload, 
-  FileText, 
-  Play, 
+import React, { useState } from "react";
+import {
+  Upload,
+  FileText,
+  Play,
   Loader2,
   AlertCircle,
   CheckCircle,
@@ -13,24 +13,28 @@ import {
   Eye,
   Cpu,
   Target,
-  Shield
-} from 'lucide-react';
-import { AnalysisResult } from '../App';
-import { analyzeCode } from '../utils/rgaaAnalyzer';
-import { extractDOMFromURL } from '../utils/domExtractor';
+  Shield,
+} from "lucide-react";
+import { AnalysisResult } from "../App";
+import { analyzeCode } from "../utils/rgaaAnalyzer";
+import { extractDOMFromURL } from "../utils/domExtractor";
 
 interface CodeAnalyzerProps {
   onAnalysisComplete: (result: AnalysisResult) => void;
 }
 
-export const CodeAnalyzer: React.FC<CodeAnalyzerProps> = ({ onAnalysisComplete }) => {
-  const [code, setCode] = useState('');
-  const [filename, setFilename] = useState('');
-  const [url, setUrl] = useState('');
+export const CodeAnalyzer: React.FC<CodeAnalyzerProps> = ({
+  onAnalysisComplete,
+}) => {
+  const [code, setCode] = useState("");
+  const [filename, setFilename] = useState("");
+  const [url, setUrl] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
-  const [analysisMode, setAnalysisMode] = useState<'url' | 'paste' | 'upload'>('url');
-  const [extractionError, setExtractionError] = useState('');
+  const [analysisMode, setAnalysisMode] = useState<"url" | "paste" | "upload">(
+    "url"
+  );
+  const [extractionError, setExtractionError] = useState("");
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -44,18 +48,48 @@ export const CodeAnalyzer: React.FC<CodeAnalyzerProps> = ({ onAnalysisComplete }
     }
   };
 
+  const downloadReport = (reportString: string) => {
+    // Création d'un blob avec le contenu texte
+    const blob = new Blob([reportString], { type: "text/plain" });
+
+    // Création d'une URL locale pour le blob
+    const url = window.URL.createObjectURL(blob);
+
+    // Création d'un lien <a> temporaire
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "rapport.txt"; // Nom du fichier téléchargé
+    document.body.appendChild(a);
+
+    // Lancement du téléchargement
+    a.click();
+
+    // Nettoyage : suppression du lien et libération de l'URL blob
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
   const handleURLExtraction = async () => {
     if (!url.trim()) return;
-    
+
     setIsExtracting(true);
-    setExtractionError('');
-    
+    setExtractionError("");
+
     try {
       const extractedData = await extractDOMFromURL(url);
       setCode(extractedData.html);
       setFilename(extractedData.title || new URL(url).hostname);
+
+      // Supposons que ton backend renvoie l'objet { data: 'le texte du rapport' }
+      if (extractedData.data) {
+        downloadReport(extractedData.data);
+      }
     } catch (error) {
-      setExtractionError(error instanceof Error ? error.message : 'Échec de l\'extraction du réseau neural');
+      setExtractionError(
+        error instanceof Error
+          ? error.message
+          : "Échec de l'extraction du réseau neural"
+      );
     } finally {
       setIsExtracting(false);
     }
@@ -63,17 +97,17 @@ export const CodeAnalyzer: React.FC<CodeAnalyzerProps> = ({ onAnalysisComplete }
 
   const handleAnalyze = async () => {
     if (!code.trim()) return;
-    
+
     setIsAnalyzing(true);
-    
+
     try {
       // Simulate AI analysis time
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      const result = analyzeCode(code, filename || 'Cible analysée');
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
+      const result = analyzeCode(code, filename || "Cible analysée");
       onAnalysisComplete(result);
     } catch (error) {
-      console.error('Échec de l\'analyse neurale:', error);
+      console.error("Échec de l'analyse neurale:", error);
     } finally {
       setIsAnalyzing(false);
     }
@@ -115,7 +149,7 @@ export const CodeAnalyzer: React.FC<CodeAnalyzerProps> = ({ onAnalysisComplete }
 
   const loadSample = () => {
     setCode(sampleCode);
-    setFilename('cyberdyne-cible.html');
+    setFilename("cyberdyne-cible.html");
   };
 
   return (
@@ -127,7 +161,10 @@ export const CodeAnalyzer: React.FC<CodeAnalyzerProps> = ({ onAnalysisComplete }
           <h1 className="text-3xl font-bold gradient-text-blue">
             PROTOCOLE SCANNER NEURAL
           </h1>
-          <Target className="h-8 w-8 text-red-500 animate-spin" style={{ animationDuration: '3s' }} />
+          <Target
+            className="h-8 w-8 text-red-500 animate-spin"
+            style={{ animationDuration: "3s" }}
+          />
         </div>
         <p className="text-slate-400 text-lg">
           Système d'Analyse d'Accessibilité Skynet
@@ -137,39 +174,39 @@ export const CodeAnalyzer: React.FC<CodeAnalyzerProps> = ({ onAnalysisComplete }
       {/* Analysis Mode Toggle */}
       <div className="glass-morphism rounded-xl shadow-2xl p-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-900/10 to-transparent"></div>
-        
+
         <div className="relative z-10">
           <div className="flex space-x-4 mb-6">
             <button
-              onClick={() => setAnalysisMode('url')}
+              onClick={() => setAnalysisMode("url")}
               className={`flex items-center space-x-2 px-4 py-3 rounded-lg transition-all duration-300 hover-lift ${
-                analysisMode === 'url'
-                  ? 'bg-gradient-to-r from-blue-900/50 to-blue-800/30 text-blue-300 border-2 border-blue-500/50 shadow-lg'
-                  : 'text-slate-400 hover:bg-blue-900/20 border-2 border-blue-500/20 hover:border-blue-500/40'
+                analysisMode === "url"
+                  ? "bg-gradient-to-r from-blue-900/50 to-blue-800/30 text-blue-300 border-2 border-blue-500/50 shadow-lg"
+                  : "text-slate-400 hover:bg-blue-900/20 border-2 border-blue-500/20 hover:border-blue-500/40"
               }`}
             >
               <Globe className="h-5 w-5" />
               <span className="font-medium">URL CIBLE</span>
             </button>
-            
+
             <button
-              onClick={() => setAnalysisMode('paste')}
+              onClick={() => setAnalysisMode("paste")}
               className={`flex items-center space-x-2 px-4 py-3 rounded-lg transition-all duration-300 hover-lift ${
-                analysisMode === 'paste'
-                  ? 'bg-gradient-to-r from-blue-900/50 to-blue-800/30 text-blue-300 border-2 border-blue-500/50 shadow-lg'
-                  : 'text-slate-400 hover:bg-blue-900/20 border-2 border-blue-500/20 hover:border-blue-500/40'
+                analysisMode === "paste"
+                  ? "bg-gradient-to-r from-blue-900/50 to-blue-800/30 text-blue-300 border-2 border-blue-500/50 shadow-lg"
+                  : "text-slate-400 hover:bg-blue-900/20 border-2 border-blue-500/20 hover:border-blue-500/40"
               }`}
             >
               <Code className="h-5 w-5" />
               <span className="font-medium">INJECTER CODE</span>
             </button>
-            
+
             <button
-              onClick={() => setAnalysisMode('upload')}
+              onClick={() => setAnalysisMode("upload")}
               className={`flex items-center space-x-2 px-4 py-3 rounded-lg transition-all duration-300 hover-lift ${
-                analysisMode === 'upload'
-                  ? 'bg-gradient-to-r from-blue-900/50 to-blue-800/30 text-blue-300 border-2 border-blue-500/50 shadow-lg'
-                  : 'text-slate-400 hover:bg-blue-900/20 border-2 border-blue-500/20 hover:border-blue-500/40'
+                analysisMode === "upload"
+                  ? "bg-gradient-to-r from-blue-900/50 to-blue-800/30 text-blue-300 border-2 border-blue-500/50 shadow-lg"
+                  : "text-slate-400 hover:bg-blue-900/20 border-2 border-blue-500/20 hover:border-blue-500/40"
               }`}
             >
               <Upload className="h-5 w-5" />
@@ -177,7 +214,7 @@ export const CodeAnalyzer: React.FC<CodeAnalyzerProps> = ({ onAnalysisComplete }
             </button>
           </div>
 
-          {analysisMode === 'url' ? (
+          {analysisMode === "url" ? (
             <div>
               <label className="block text-sm font-medium text-blue-400 mb-3">
                 URL CIBLE POUR EXTRACTION NEURALE
@@ -208,7 +245,7 @@ export const CodeAnalyzer: React.FC<CodeAnalyzerProps> = ({ onAnalysisComplete }
                   )}
                 </button>
               </div>
-              
+
               {extractionError && (
                 <div className="mt-3 p-3 bg-red-900/30 border-2 border-red-500/50 rounded-lg">
                   <div className="flex items-center space-x-2">
@@ -217,20 +254,23 @@ export const CodeAnalyzer: React.FC<CodeAnalyzerProps> = ({ onAnalysisComplete }
                   </div>
                 </div>
               )}
-              
+
               {code && (
                 <div className="mt-4 p-4 bg-green-900/20 border-2 border-green-500/50 rounded-lg">
                   <div className="flex items-center space-x-2 mb-2">
                     <CheckCircle className="h-4 w-4 text-green-400 animate-pulse" />
-                    <p className="text-sm font-medium text-green-300">CIBLE ACQUISE</p>
+                    <p className="text-sm font-medium text-green-300">
+                      CIBLE ACQUISE
+                    </p>
                   </div>
                   <p className="text-sm text-green-400">
-                    {code.split('\n').length} lignes extraites • Analyse neurale prête
+                    {code.split("\n").length} lignes extraites • Analyse neurale
+                    prête
                   </p>
                 </div>
               )}
             </div>
-          ) : analysisMode === 'upload' ? (
+          ) : analysisMode === "upload" ? (
             <div>
               <label className="block text-sm font-medium text-blue-400 mb-3">
                 TÉLÉCHARGER FICHIER CIBLE
@@ -247,7 +287,9 @@ export const CodeAnalyzer: React.FC<CodeAnalyzerProps> = ({ onAnalysisComplete }
                   <p className="text-lg font-medium text-blue-300 mb-2">
                     DÉPOSER FICHIER CIBLE ICI
                   </p>
-                  <p className="text-slate-400 mb-4">ou cliquer pour sélectionner un fichier</p>
+                  <p className="text-slate-400 mb-4">
+                    ou cliquer pour sélectionner un fichier
+                  </p>
                   <p className="text-sm text-slate-500">
                     Formats supportés: HTML, CSS, JS, JSX, TSX
                   </p>
@@ -267,14 +309,14 @@ export const CodeAnalyzer: React.FC<CodeAnalyzerProps> = ({ onAnalysisComplete }
                   CHARGER CIBLE EXEMPLE
                 </button>
               </div>
-              
+
               <textarea
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 placeholder="Collez votre code HTML, CSS ou JavaScript ici pour l'analyse neurale..."
                 className="w-full h-64 p-4 bg-slate-700/50 border-2 border-blue-500/30 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-400 resize-y text-slate-200 placeholder-slate-500"
               />
-              
+
               <div className="mt-3">
                 <input
                   type="text"
@@ -294,7 +336,7 @@ export const CodeAnalyzer: React.FC<CodeAnalyzerProps> = ({ onAnalysisComplete }
         <div className="absolute inset-0 opacity-10">
           <Cpu className="h-full w-full" />
         </div>
-        
+
         <div className="relative z-10 flex items-start space-x-4">
           <div className="p-3 bg-blue-900/50 rounded-lg border border-blue-500/50">
             <Shield className="h-6 w-6 text-blue-400 animate-pulse" />
@@ -304,9 +346,15 @@ export const CodeAnalyzer: React.FC<CodeAnalyzerProps> = ({ onAnalysisComplete }
               PROTOCOLE D'ANALYSE NEURALE SKYNET
             </h3>
             <ul className="text-sm text-slate-400 space-y-1">
-              <li>• Détection avancée de menaces IA pour violations d'accessibilité</li>
+              <li>
+                • Détection avancée de menaces IA pour violations
+                d'accessibilité
+              </li>
               <li>• Analyse par réseau neural de 106 critères RGAA</li>
-              <li>• Classification automatique de sévérité (CRITIQUE/MAJEUR/MINEUR)</li>
+              <li>
+                • Classification automatique de sévérité
+                (CRITIQUE/MAJEUR/MINEUR)
+              </li>
               <li>• Protocoles de correction intelligents et suggestions</li>
               <li>• Vérification complète de conformité WCAG 2.1</li>
             </ul>
@@ -339,10 +387,14 @@ export const CodeAnalyzer: React.FC<CodeAnalyzerProps> = ({ onAnalysisComplete }
       {/* Quick Stats */}
       {code && (
         <div className="glass-morphism rounded-xl shadow-2xl p-6 border border-blue-500/30">
-          <h3 className="text-lg font-bold text-blue-300 mb-4">ANALYSE CIBLE</h3>
+          <h3 className="text-lg font-bold text-blue-300 mb-4">
+            ANALYSE CIBLE
+          </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-3 bg-blue-900/20 rounded-lg border border-blue-500/30 hover-lift">
-              <p className="text-2xl font-bold text-blue-400">{code.split('\n').length}</p>
+              <p className="text-2xl font-bold text-blue-400">
+                {code.split("\n").length}
+              </p>
               <p className="text-sm text-slate-500">LIGNES</p>
             </div>
             <div className="text-center p-3 bg-blue-900/20 rounded-lg border border-blue-500/30 hover-lift">
@@ -350,11 +402,15 @@ export const CodeAnalyzer: React.FC<CodeAnalyzerProps> = ({ onAnalysisComplete }
               <p className="text-sm text-slate-500">CARACTÈRES</p>
             </div>
             <div className="text-center p-3 bg-blue-900/20 rounded-lg border border-blue-500/30 hover-lift">
-              <p className="text-2xl font-bold text-blue-400">{(code.match(/<[^>]+>/g) || []).length}</p>
+              <p className="text-2xl font-bold text-blue-400">
+                {(code.match(/<[^>]+>/g) || []).length}
+              </p>
               <p className="text-sm text-slate-500">BALISES</p>
             </div>
             <div className="text-center p-3 bg-blue-900/20 rounded-lg border border-blue-500/30 hover-lift">
-              <p className="text-2xl font-bold text-blue-400">{Math.round(code.length / 1024)}KB</p>
+              <p className="text-2xl font-bold text-blue-400">
+                {Math.round(code.length / 1024)}KB
+              </p>
               <p className="text-sm text-slate-500">TAILLE</p>
             </div>
           </div>
@@ -365,35 +421,46 @@ export const CodeAnalyzer: React.FC<CodeAnalyzerProps> = ({ onAnalysisComplete }
       {isAnalyzing && (
         <div className="glass-morphism rounded-xl shadow-2xl p-6 relative overflow-hidden border border-blue-500/30">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-900/10 to-transparent animate-pulse"></div>
-          
+
           <div className="relative z-10">
             <div className="flex items-center space-x-4 mb-6">
               <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
-              <h3 className="text-xl font-bold text-blue-300">ANALYSE NEURALE EN COURS...</h3>
+              <h3 className="text-xl font-bold text-blue-300">
+                ANALYSE NEURALE EN COURS...
+              </h3>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-400">Extraction DOM terminée</span>
                 <CheckCircle className="h-4 w-4 text-green-400" />
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-400">Analyse des critères RGAA</span>
+                <span className="text-slate-400">
+                  Analyse des critères RGAA
+                </span>
                 <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-500">Génération évaluation menaces</span>
+                <span className="text-slate-500">
+                  Génération évaluation menaces
+                </span>
                 <div className="h-4 w-4 rounded-full border-2 border-blue-500/30"></div>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-500">Calcul protocoles correction</span>
+                <span className="text-slate-500">
+                  Calcul protocoles correction
+                </span>
                 <div className="h-4 w-4 rounded-full border-2 border-blue-500/30"></div>
               </div>
             </div>
-            
+
             <div className="mt-6">
               <div className="w-full bg-slate-700/50 rounded-full h-3 border border-blue-500/50">
-                <div className="bg-gradient-to-r from-blue-600 to-blue-500 h-3 rounded-full animate-pulse shadow-lg" style={{ width: '60%' }}></div>
+                <div
+                  className="bg-gradient-to-r from-blue-600 to-blue-500 h-3 rounded-full animate-pulse shadow-lg"
+                  style={{ width: "60%" }}
+                ></div>
               </div>
             </div>
           </div>

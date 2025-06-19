@@ -3,6 +3,7 @@ interface ExtractedData {
   title: string;
   url: string;
   timestamp: Date;
+  data: string;
 }
 
 export async function extractDOMFromURL(url: string): Promise<ExtractedData> {
@@ -26,7 +27,8 @@ export async function extractDOMFromURL(url: string): Promise<ExtractedData> {
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // For demo purposes, we'll use a CORS proxy to fetch the page
-    const proxyUrl = `https://hackaton-back-mj32.onrender.com/report`;
+    // const proxyUrl = `https://hackaton-back-mj32.onrender.com/report`;
+    const proxyUrl = `http://localhost:3000/report`;
 
     const response = await fetch(proxyUrl, {
       method: "POST",
@@ -59,6 +61,7 @@ export async function extractDOMFromURL(url: string): Promise<ExtractedData> {
       title,
       url,
       timestamp: new Date(),
+      data: data,
     };
   } catch (error) {
     if (error instanceof Error) {
